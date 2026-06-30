@@ -310,9 +310,16 @@ var dateStr = today.getFullYear()
   + String(today.getMonth()+1).padStart(2,'0')
   + String(today.getDate()).padStart(2,'0');
 var seqKey = 'cfm_audit_seq_' + dateStr;
-var seq = parseInt(localStorage.getItem(seqKey) || '0') + 1;
-localStorage.setItem(seqKey, seq);
-var refNo = 'CFM-EA-' + dateStr + '-' + String(seq).padStart(3,'0');
+// Use sessionStorage to remember THIS tab's ref number, so refreshing
+// or reopening the same audit does not burn through sequence numbers.
+// Only a genuinely new browser tab/session pulls the next number.
+var refNo = sessionStorage.getItem('cfm_audit_ref');
+if (!refNo) {
+  var seq = parseInt(localStorage.getItem(seqKey) || '0') + 1;
+  localStorage.setItem(seqKey, seq);
+  refNo = 'CFM-EA-' + dateStr + '-' + String(seq).padStart(3,'0');
+  sessionStorage.setItem('cfm_audit_ref', refNo);
+}
 document.getElementById('audit-ref').value = refNo;
 
 // ── SITE INFO COLLAPSE ─────────────────────────────────────────────────────────
@@ -361,24 +368,8 @@ function getGPS() {
 }
 
 // ── AUDIT DATA ─────────────────────────────────────────────────────────────────
-var SELPTS = {
-  ls1: {'0':0,'2':2,'4':4,'6':6},
-  rs1: {'0':0,'1':1,'2':2},
-  rs3: {'0':0,'2':2,'4':4},
-  rs4: {'0':0,'2':2},
-  rs5: {'0':0,'2':2,'4':4},
-  rs6: {'0':0,'1':1,'2':2,'4':4},
-  rs7: {'0':0,'4':4},
-  rs8: {'0':0,'4':4,'2':2},
-  rs9: {'0':0,'2':2,'3':3,'4':4},
-  hs1: {'0':0,'2':2,'3':3},
-  hs2: {'0':0,'1':1,'4':4},
-  hsc: {'0':0,'4':4},
-  es1: {'0':0,'1':1,'4':4},
-  es2: {'0':0,'1':1},
-  bs1: {'0':0,'2':2},
-  ms1: {'0':0,'2':2,'4':4,'5':5}
-};
+// Note: max points per select are derived directly from each select's
+// own opts array in recalc() below — no separate lookup table needed.
 
 var DATA = [
   {id:'lighting',label:'Lighting',icon:'&#9788;',questions:[
@@ -407,7 +398,7 @@ var DATA = [
     {id:'rq9',q:'Compressor manager installed?',n:'Centralised compressor control improves efficiency',p:3}
   ],selects:[
     {id:'rs1',label:'Night blinds / case closing type',opts:[['0','-- Select --'],['1','Curtain'],['2','Door'],['0','None']]},
-    {id:'rs4',label:'Defrosting type',opts:[['0','-- Select --'],['2','Hot Gas'],['2','Heat Element']]},
+    {id:'rs4',label:'Defrosting type',opts:[['0','-- Select --'],['2','Hot Gas'],['3','Heat Element']]},
     {id:'rs5',label:'Compressor type',opts:[['0','-- Select --'],['2','Fixed Speed'],['4','VSD'],['0','Not Working']]},
     {id:'rs6',label:'Refrigerant type',opts:[['0','-- Select --'],['0','R404a — high GWP'],['1','R134a'],['2','R449a / HFO blend'],['4','Natural — CO2 or NH3']]},
     {id:'rs3',label:'Defrost cycles per day',opts:[['0','-- Select --'],['0','6 cycles'],['2','4 cycles'],['4','2 demand-controlled']]},
@@ -582,8 +573,8 @@ function recalc() {
     });
     (sec.selects||[]).forEach(function(s) {
       var el = document.getElementById(s.id);
-      var map = SELPTS[s.id] || {};
-      var maxV = Math.max.apply(null, [0].concat(Object.values(map)));
+      var optVals = s.opts.map(function(o) { return parseInt(o[0]) || 0; });
+      var maxV = Math.max.apply(null, [0].concat(optVals));
       max += maxV;
       var val = parseInt(el ? el.value : 0) || 0;
       totals[sec.id].pts += val;
