@@ -434,6 +434,49 @@ document.getElementById('audit-ref').addEventListener('input', function() {
 document.getElementById('siteinfo-ref-preview').textContent = refNo;
 
 // ── GPS ────────────────────────────────────────────────────────────────────────
+// Maps Nominatim's state names (which vary in wording) to our dropdown's exact option text
+var MY_STATE_MAP = {
+  'johor': 'Johor',
+  'kedah': 'Kedah',
+  'kelantan': 'Kelantan',
+  'melaka': 'Melaka', 'malacca': 'Melaka',
+  'negeri sembilan': 'Negeri Sembilan',
+  'pahang': 'Pahang',
+  'perak': 'Perak',
+  'perlis': 'Perlis',
+  'pulau pinang': 'Pulau Pinang', 'penang': 'Pulau Pinang',
+  'sabah': 'Sabah',
+  'sarawak': 'Sarawak',
+  'selangor': 'Selangor',
+  'terengganu': 'Terengganu',
+  'kuala lumpur': 'W.P. Kuala Lumpur', 'wilayah persekutuan kuala lumpur': 'W.P. Kuala Lumpur',
+  'labuan': 'W.P. Labuan', 'wilayah persekutuan labuan': 'W.P. Labuan',
+  'putrajaya': 'W.P. Putrajaya', 'wilayah persekutuan putrajaya': 'W.P. Putrajaya'
+};
+
+function matchMalaysianState(nominatimStateText) {
+  if (!nominatimStateText) return null;
+  var key = nominatimStateText.toLowerCase().trim();
+  if (MY_STATE_MAP[key]) return MY_STATE_MAP[key];
+  // Try partial match (e.g. "Negeri Sembilan Darul Khusus" contains "negeri sembilan")
+  for (var k in MY_STATE_MAP) {
+    if (key.indexOf(k) !== -1) return MY_STATE_MAP[k];
+  }
+  return null;
+}
+
+function autoSelectState(stateName) {
+  var matched = matchMalaysianState(stateName);
+  var sel = document.getElementById('si-state');
+  if (matched && sel) {
+    for (var i = 0; i < sel.options.length; i++) {
+      if (sel.options[i].text === matched) { sel.selectedIndex = i; break; }
+    }
+    return true;
+  }
+  return false;
+}
+
 function getGPS() {
   var status = document.getElementById('gps-status');
   var val = document.getElementById('gps-val');
@@ -451,10 +494,28 @@ function getGPS() {
       var lng = pos.coords.longitude.toFixed(6);
       var acc = Math.round(pos.coords.accuracy);
       val.value = lat + ', ' + lng;
-      status.textContent = 'Captured — accuracy approx. ' + acc + ' m';
+      status.textContent = 'Captured — accuracy approx. ' + acc + ' m. Looking up state...';
       status.className = 'gps-status ok';
       link.href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
       link.style.display = 'inline-block';
+
+      // Attempt reverse geocoding to auto-fill State. Requires internet at this
+      // moment only — GPS coordinates above are already captured either way.
+      var geocodeUrl = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + lat + '&lon=' + lng + '&zoom=8&addressdetails=1';
+      fetch(geocodeUrl, { headers: { 'Accept': 'application/json' } })
+        .then(function(r) { if (!r.ok) throw new Error('lookup failed'); return r.json(); })
+        .then(function(data) {
+          var stateText = data && data.address ? (data.address.state || data.address.state_district || '') : '';
+          var found = autoSelectState(stateText);
+          if (found) {
+            status.textContent = 'Captured — accuracy approx. ' + acc + ' m. State auto-filled (you can change it).';
+          } else {
+            status.textContent = 'Captured — accuracy approx. ' + acc + ' m. Could not match state automatically — please select manually.';
+          }
+        })
+        .catch(function() {
+          status.textContent = 'Captured — accuracy approx. ' + acc + ' m. No internet for state lookup — please select state manually.';
+        });
     },
     function() {
       status.textContent = 'Could not get location. Allow location access and try again.';
