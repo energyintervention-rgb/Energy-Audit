@@ -177,6 +177,26 @@ input[type=file]{display:none}
 @media(prefers-color-scheme:dark){.footer-txt{color:#777}}
 .print-btn{background:#1F4E79;color:#fff;border:none;padding:9px 20px;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif}
 .print-btn:hover{background:#2E75B6}
+.footer-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.load-btn{background:transparent;color:#1F4E79;border:1px solid #2E75B6;padding:8px 16px;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif}
+.load-btn:hover{background:#e8f1fb}
+@media(prefers-color-scheme:dark){.load-btn{color:#90bce8;border-color:#5b9bd5}.load-btn:hover{background:#1a2d42}}
+.export-wrap{position:relative;display:inline-block}
+.export-menu{position:absolute;bottom:calc(100% + 6px);right:0;background:#fff;border:1px solid #dce3ee;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.15);min-width:200px;display:none;overflow:hidden;z-index:100}
+.export-menu.show{display:block}
+@media(prefers-color-scheme:dark){.export-menu{background:#222;border-color:#444}}
+.export-opt{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;font-size:13px;color:#1a1a1a;border-bottom:1px solid #f0f3f8}
+.export-opt:last-child{border-bottom:none}
+.export-opt:hover{background:#f5f6f8}
+@media(prefers-color-scheme:dark){.export-opt{color:#e8e8e8;border-color:#2a2a2a}.export-opt:hover{background:#2a2a2a}}
+.export-opt-icon{font-size:18px;flex-shrink:0}
+.export-opt-text{display:flex;flex-direction:column;gap:1px}
+.export-opt-title{font-weight:700;font-size:13px}
+.export-opt-sub{font-size:11px;color:#6b7a99}
+@media(prefers-color-scheme:dark){.export-opt-sub{color:#777}}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1F4E79;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;z-index:3000;display:none;box-shadow:0 4px 16px rgba(0,0,0,0.2)}
+.toast.show{display:block}
+@media print{.load-btn,.export-wrap{display:none}}
 @media print{
   body{background:#fff!important}
   .wrap{padding:8px}
@@ -237,16 +257,16 @@ input[type=file]{display:none}
     </div>
     <div class="si-field">
       <label>Store code</label>
-      <input type="text" placeholder="e.g. MY-KL-001" maxlength="20">
+      <input type="text" id="si-store-code" placeholder="e.g. MY-KL-001" maxlength="20">
       <span class="si-hint">Unique ID per outlet</span>
     </div>
     <div class="si-field">
       <label>Store name</label>
-      <input type="text" placeholder="e.g. Giant Hypermarket PJ">
+      <input type="text" id="si-store-name" placeholder="e.g. Giant Hypermarket PJ">
     </div>
     <div class="si-field">
       <label>Store type</label>
-      <select>
+      <select id="si-store-type">
         <option value="">-- Select --</option>
         <option>Hypermarket</option>
         <option>Supermarket</option>
@@ -256,11 +276,11 @@ input[type=file]{display:none}
     </div>
     <div class="si-field full">
       <label>Address</label>
-      <input type="text" placeholder="Street, city, postcode">
+      <input type="text" id="si-address" placeholder="Street, city, postcode">
     </div>
     <div class="si-field">
       <label>State</label>
-      <select>
+      <select id="si-state">
         <option value="">-- Select state --</option>
         <option>Johor</option><option>Kedah</option><option>Kelantan</option>
         <option>Melaka</option><option>Negeri Sembilan</option><option>Pahang</option>
@@ -272,11 +292,11 @@ input[type=file]{display:none}
     </div>
     <div class="si-field">
       <label>Floor area (m&#178;)</label>
-      <input type="number" placeholder="e.g. 4500" min="0">
+      <input type="number" id="si-floor-area" placeholder="e.g. 4500" min="0">
     </div>
     <div class="si-field">
       <label>Operating hours</label>
-      <input type="text" placeholder="e.g. 08:00 - 22:00">
+      <input type="text" id="si-hours" placeholder="e.g. 08:00 - 22:00">
     </div>
 
     <div class="si-divider"></div>
@@ -295,11 +315,11 @@ input[type=file]{display:none}
 
     <div class="si-field">
       <label>Auditor name</label>
-      <input type="text" placeholder="Full name">
+      <input type="text" id="si-auditor-name" placeholder="Full name">
     </div>
     <div class="si-field">
       <label>Auditor company</label>
-      <input type="text" value="City Technical Solutions">
+      <input type="text" id="si-auditor-company" value="City Technical Solutions">
     </div>
     <div class="si-field">
       <label>Audit date</label>
@@ -307,19 +327,19 @@ input[type=file]{display:none}
     </div>
     <div class="si-field">
       <label>Site contact person</label>
-      <input type="text" placeholder="Name and designation">
+      <input type="text" id="si-contact-person" placeholder="Name and designation">
     </div>
     <div class="si-field">
       <label>Site contact number</label>
-      <input type="tel" placeholder="+60 12-345 6789">
+      <input type="tel" id="si-contact-number" placeholder="+60 12-345 6789">
     </div>
     <div class="si-field">
       <label>Avg monthly bill (RM)</label>
-      <input type="number" placeholder="e.g. 45000" min="0">
+      <input type="number" id="si-monthly-bill" placeholder="e.g. 45000" min="0">
     </div>
     <div class="si-field">
       <label>TNB tariff category</label>
-      <select>
+      <select id="si-tariff">
         <option value="">-- Select --</option>
         <option>C1 - LV Commercial</option>
         <option>C2 - MV Commercial</option>
@@ -330,14 +350,14 @@ input[type=file]{display:none}
     </div>
     <div class="si-field">
       <label>Max demand (kW)</label>
-      <input type="number" placeholder="e.g. 800" min="0">
+      <input type="number" id="si-max-demand" placeholder="e.g. 800" min="0">
     </div>
 
     <div class="si-divider"></div>
 
     <div class="si-field full">
       <label>General site notes</label>
-      <textarea placeholder="Access restrictions, site conditions, areas not audited..."></textarea>
+      <textarea id="si-notes" placeholder="Access restrictions, site conditions, areas not audited..."></textarea>
     </div>
 
   </div>
@@ -351,8 +371,31 @@ input[type=file]{display:none}
 </div>
 <div class="footer">
   <span class="footer-txt" id="ftxt">Supermarket energy audit &nbsp;|&nbsp; 6 sections</span>
-  <button class="print-btn" onclick="printAudit()">Print / save as PDF</button>
+  <div class="footer-actions">
+    <button class="load-btn" onclick="document.getElementById('json-load-input').click()">&#128193; Load audit</button>
+    <input type="file" id="json-load-input" accept="application/json" onchange="loadAuditJSON(this)">
+    <div class="export-wrap">
+      <button class="print-btn" onclick="toggleExportMenu()">&#128190; Export &#9662;</button>
+      <div class="export-menu" id="export-menu">
+        <div class="export-opt" onclick="exportPDF()">
+          <span class="export-opt-icon">&#128196;</span>
+          <span class="export-opt-text">
+            <span class="export-opt-title">Save as PDF</span>
+            <span class="export-opt-sub">Final report — view and print only</span>
+          </span>
+        </div>
+        <div class="export-opt" onclick="exportJSON()">
+          <span class="export-opt-icon">&#128190;</span>
+          <span class="export-opt-text">
+            <span class="export-opt-title">Save as file (.json)</span>
+            <span class="export-opt-sub">Continue editing later</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+<div class="toast" id="toast"></div>
 </div>
 <script>
 // ── DATE & REF NUMBER ──────────────────────────────────────────────────────────
@@ -582,39 +625,11 @@ function trigCam(fid) { document.getElementById(fid).click(); }
 function onCamFile(input, sid, cid) {
   if (!input.files || !input.files[0]) return;
   var strip = document.getElementById(sid);
-  strip.style.display = 'flex';
   var secLabel = input.dataset.secLabel || '';
   var qLabel = input.dataset.qLabel || '';
   var reader = new FileReader();
   reader.onload = function(e) {
-    var th = document.createElement('div'); th.className = 'thumb';
-    th.dataset.secLabel = secLabel;
-    th.dataset.qLabel = qLabel;
-    th.dataset.src = e.target.result;
-    var img = document.createElement('img'); img.src = e.target.result;
-    img.onclick = function() {
-      openLightbox(e.target.result, function() {
-        th.remove();
-        if (!strip.children.length) {
-          strip.style.display = 'none';
-          document.getElementById(cid).classList.remove('has');
-        }
-      });
-    };
-    var delBtn = document.createElement('button');
-    delBtn.className = 'thumb-del';
-    delBtn.innerHTML = '&times;';
-    delBtn.title = 'Remove photo';
-    delBtn.onclick = function(ev) {
-      ev.stopPropagation();
-      th.remove();
-      if (!strip.children.length) {
-        strip.style.display = 'none';
-        document.getElementById(cid).classList.remove('has');
-      }
-    };
-    th.appendChild(img); th.appendChild(delBtn); strip.appendChild(th);
-    document.getElementById(cid).classList.add('has');
+    addThumbToStrip(strip, e.target.result, secLabel, qLabel, cid);
   };
   reader.readAsDataURL(input.files[0]);
 }
@@ -625,20 +640,7 @@ function onSecGalFile(input, rid) {
   var secLabel = input.dataset.secLabel || '';
   var reader = new FileReader();
   reader.onload = function(e) {
-    var th = document.createElement('div'); th.className = 'sg-th';
-    th.dataset.secLabel = secLabel;
-    th.dataset.src = e.target.result;
-    var img = document.createElement('img'); img.src = e.target.result;
-    img.onclick = function() {
-      openLightbox(e.target.result, function() { th.remove(); });
-    };
-    var delBtn = document.createElement('button');
-    delBtn.className = 'thumb-del';
-    delBtn.innerHTML = '&times;';
-    delBtn.title = 'Remove photo';
-    delBtn.onclick = function(ev) { ev.stopPropagation(); th.remove(); };
-    th.appendChild(img); th.appendChild(delBtn);
-    row.insertBefore(th, row.querySelector('.sg-add'));
+    addThumbToSecGal(row, e.target.result, secLabel);
   };
   reader.readAsDataURL(input.files[0]);
 }
@@ -746,6 +748,7 @@ function doReset() {
   document.querySelectorAll('.si-field input[type="text"], .si-field input[type="number"], .si-field input[type="tel"], .si-field textarea').forEach(function(f) {
     if (f.id !== 'audit-ref') f.value = '';
   });
+  document.getElementById('si-auditor-company').value = 'City Technical Solutions';
   document.querySelectorAll('.si-field select').forEach(function(s) { s.selectedIndex = 0; });
   document.getElementById('gps-val').value = '';
   document.getElementById('gps-status').textContent = 'Tap Get GPS to capture current location';
@@ -840,6 +843,231 @@ function printAudit() {
   window.print();
 }
 window.onbeforeprint = buildPhotoAppendix;
+
+// ── EXPORT / IMPORT MENU ────────────────────────────────────────────────────────
+function toggleExportMenu() {
+  document.getElementById('export-menu').classList.toggle('show');
+}
+document.addEventListener('click', function(ev) {
+  var wrap = document.querySelector('.export-wrap');
+  var menu = document.getElementById('export-menu');
+  if (wrap && menu && !wrap.contains(ev.target)) menu.classList.remove('show');
+});
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 2800);
+}
+
+function exportPDF() {
+  document.getElementById('export-menu').classList.remove('show');
+  printAudit();
+}
+
+// ── BUILD STATE OBJECT (used by JSON export) ───────────────────────────────────
+function collectAuditState() {
+  var state = { version: 1, savedAt: new Date().toISOString(), siteInfo: {}, answers: {}, selects: {}, findings: {}, photos: { thumbs: [], secGal: [] } };
+
+  // Site info fields
+  document.querySelectorAll('.si-field input, .si-field select, .si-field textarea').forEach(function(el) {
+    if (!el.id) return;
+    state.siteInfo[el.id] = el.value;
+  });
+
+  // Answers (yes/no/na)
+  state.answers = answers;
+
+  // Selects inside audit sections
+  document.querySelectorAll('.opt-sel').forEach(function(el) {
+    state.selects[el.id] = el.value;
+  });
+
+  // Findings textareas and section gallery captions
+  document.querySelectorAll('.frow textarea').forEach(function(el) {
+    state.findings[el.id] = el.value;
+  });
+  document.querySelectorAll('.sec-gal-cap').forEach(function(el) {
+    if (el.id) state.findings[el.id] = el.value;
+  });
+
+  // Per-question photos
+  document.querySelectorAll('.thumb').forEach(function(th) {
+    var strip = th.parentElement;
+    if (!strip || !strip.id) return;
+    state.photos.thumbs.push({
+      stripId: strip.id,
+      src: th.dataset.src,
+      secLabel: th.dataset.secLabel || '',
+      qLabel: th.dataset.qLabel || ''
+    });
+  });
+
+  // Section gallery photos
+  document.querySelectorAll('.sg-th').forEach(function(th) {
+    var row = th.parentElement;
+    if (!row || !row.id) return;
+    state.photos.secGal.push({
+      rowId: row.id,
+      src: th.dataset.src,
+      secLabel: th.dataset.secLabel || ''
+    });
+  });
+
+  return state;
+}
+
+function exportJSON() {
+  document.getElementById('export-menu').classList.remove('show');
+  var state = collectAuditState();
+  var refVal = document.getElementById('audit-ref').value || 'audit';
+  var storeName = document.getElementById('si-store-name') ? document.getElementById('si-store-name').value : '';
+  var safeName = (refVal + (storeName ? '-' + storeName : '')).replace(/[^a-z0-9\-]+/gi, '_');
+  var blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = safeName + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+  showToast('Saved as ' + safeName + '.json');
+}
+
+function loadAuditJSON(input) {
+  if (!input.files || !input.files[0]) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var state;
+    try {
+      state = JSON.parse(e.target.result);
+    } catch (err) {
+      showToast('Could not read that file — not a valid audit export.');
+      return;
+    }
+    applyAuditState(state);
+    showToast('Audit loaded — continue where you left off.');
+  };
+  reader.readAsText(input.files[0]);
+  input.value = '';
+}
+
+function applyAuditState(state) {
+  if (!state) return;
+
+  // Site info
+  if (state.siteInfo) {
+    Object.keys(state.siteInfo).forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.value = state.siteInfo[id];
+    });
+    var refEl = document.getElementById('audit-ref');
+    if (refEl) document.getElementById('siteinfo-ref-preview').textContent = refEl.value;
+  }
+
+  // GPS map link, if a value was restored
+  var gpsVal = document.getElementById('gps-val');
+  if (gpsVal && gpsVal.value && gpsVal.value.indexOf(',') > -1) {
+    var parts = gpsVal.value.split(',');
+    var lat = parts[0].trim(), lng = parts[1].trim();
+    var link = document.getElementById('map-link');
+    if (link && lat && lng) {
+      link.href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+      link.style.display = 'inline-block';
+    }
+  }
+
+  // Answers
+  if (state.answers) {
+    Object.keys(state.answers).forEach(function(qid) {
+      var a = state.answers[qid];
+      if (a) ans(qid, a.val, a.pts);
+    });
+  }
+
+  // Selects
+  if (state.selects) {
+    Object.keys(state.selects).forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.value = state.selects[id];
+    });
+  }
+
+  // Findings and captions
+  if (state.findings) {
+    Object.keys(state.findings).forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.value = state.findings[id];
+    });
+  }
+
+  // Photos — per-question
+  if (state.photos && state.photos.thumbs) {
+    state.photos.thumbs.forEach(function(p) {
+      var strip = document.getElementById(p.stripId);
+      if (!strip) return;
+      var cid = p.stripId.replace('strip-', 'cam-');
+      addThumbToStrip(strip, p.src, p.secLabel, p.qLabel, cid);
+    });
+  }
+
+  // Photos — section gallery
+  if (state.photos && state.photos.secGal) {
+    state.photos.secGal.forEach(function(p) {
+      var row = document.getElementById(p.rowId);
+      if (!row) return;
+      addThumbToSecGal(row, p.src, p.secLabel);
+    });
+  }
+
+  recalc();
+}
+
+// Shared thumbnail-building logic (used by both camera capture and JSON restore)
+function addThumbToStrip(strip, src, secLabel, qLabel, cid) {
+  strip.style.display = 'flex';
+  var th = document.createElement('div'); th.className = 'thumb';
+  th.dataset.secLabel = secLabel; th.dataset.qLabel = qLabel; th.dataset.src = src;
+  var img = document.createElement('img'); img.src = src;
+  img.onclick = function() {
+    openLightbox(src, function() {
+      th.remove();
+      if (!strip.children.length) {
+        strip.style.display = 'none';
+        var btn = document.getElementById(cid);
+        if (btn) btn.classList.remove('has');
+      }
+    });
+  };
+  var delBtn = document.createElement('button');
+  delBtn.className = 'thumb-del'; delBtn.innerHTML = '&times;'; delBtn.title = 'Remove photo';
+  delBtn.onclick = function(ev) {
+    ev.stopPropagation();
+    th.remove();
+    if (!strip.children.length) {
+      strip.style.display = 'none';
+      var btn = document.getElementById(cid);
+      if (btn) btn.classList.remove('has');
+    }
+  };
+  th.appendChild(img); th.appendChild(delBtn); strip.appendChild(th);
+  var camBtn = document.getElementById(cid);
+  if (camBtn) camBtn.classList.add('has');
+}
+
+function addThumbToSecGal(row, src, secLabel) {
+  var th = document.createElement('div'); th.className = 'sg-th';
+  th.dataset.secLabel = secLabel; th.dataset.src = src;
+  var img = document.createElement('img'); img.src = src;
+  img.onclick = function() { openLightbox(src, function() { th.remove(); }); };
+  var delBtn = document.createElement('button');
+  delBtn.className = 'thumb-del'; delBtn.innerHTML = '&times;'; delBtn.title = 'Remove photo';
+  delBtn.onclick = function(ev) { ev.stopPropagation(); th.remove(); };
+  th.appendChild(img); th.appendChild(delBtn);
+  row.insertBefore(th, row.querySelector('.sg-add'));
+}
 
 recalc();
 </script>
