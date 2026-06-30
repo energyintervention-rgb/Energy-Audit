@@ -20,12 +20,28 @@ body{font-family:Arial,sans-serif;background:#f5f6f8;color:#1a1a1a;font-size:15p
 .logo-bar img{height:40px;width:auto}
 .logo-txt{font-size:12px;color:#6b7a99;line-height:1.5}
 @media(prefers-color-scheme:dark){.logo-txt{color:#666}}
-.topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+@media(max-width:480px){.topbar{gap:8px}.top-title h1{font-size:16px}.score-box{font-size:22px}}
 .top-title h1{font-size:18px;font-weight:700}
 .top-title p{font-size:12px;color:#6b7a99;margin-top:2px}
 .score-box{font-size:28px;font-weight:700;color:#2E75B6;line-height:1;text-align:right;margin-left:auto}
 .score-box span{display:block;font-size:11px;color:#6b7a99;font-weight:400;margin-top:2px}
 @media(prefers-color-scheme:dark){.score-box{color:#5b9bd5}.score-box span,.top-title p{color:#666}}
+.reset-btn{padding:8px 14px;border:1px solid #dc2626;border-radius:7px;background:transparent;color:#dc2626;font-size:12px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;white-space:nowrap;flex-shrink:0}
+.reset-btn:hover{background:#fee2e2}
+@media(prefers-color-scheme:dark){.reset-btn{border-color:#f87171;color:#f87171}.reset-btn:hover{background:#2d0a0a}}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.modal-overlay.show{display:flex}
+.modal-box{background:#fff;border-radius:12px;padding:20px;max-width:340px;width:100%}
+@media(prefers-color-scheme:dark){.modal-box{background:#222}}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:8px}
+.modal-text{font-size:13px;color:#5a6a84;margin-bottom:18px;line-height:1.5}
+@media(prefers-color-scheme:dark){.modal-text{color:#999}}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end}
+.modal-btn{padding:8px 16px;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;border:1px solid #c8d4e8;background:transparent;color:#5a6a84}
+.modal-btn.danger{background:#dc2626;border-color:#dc2626;color:#fff}
+.modal-btn.danger:hover{background:#b91c1c}
+@media(prefers-color-scheme:dark){.modal-btn{border-color:#444;color:#aaa}}
 .prog{height:5px;border-radius:3px;background:#e0e8f5;margin-bottom:14px;overflow:hidden}
 @media(prefers-color-scheme:dark){.prog{background:#2a2a2a}}
 .prog-fill{height:100%;background:#2E75B6;border-radius:3px;transition:width 0.4s}
@@ -44,6 +60,8 @@ body{font-family:Arial,sans-serif;background:#f5f6f8;color:#1a1a1a;font-size:15p
 .siteinfo-arrow.open{transform:rotate(180deg)}
 @media(prefers-color-scheme:dark){.siteinfo-arrow{color:#666}}
 .siteinfo-body{padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:480px){.siteinfo-body{grid-template-columns:1fr}.si-field{min-width:0}}
+.si-field input,.si-field select{min-width:0}
 .siteinfo-body.hidden{display:none}
 .si-field{display:flex;flex-direction:column;gap:4px}
 .si-field.full{grid-column:1/-1}
@@ -108,9 +126,12 @@ input[type=file]{display:none}
 .cam-btn{width:30px;height:30px;border:1px solid #c8d4e8;border-radius:7px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;padding:0;color:#6b7a99}
 .cam-btn.has{background:#e8f1fb;border-color:#2E75B6;color:#1F4E79}
 @media(prefers-color-scheme:dark){.cam-btn{border-color:#444;color:#888}.cam-btn.has{background:#1a2d42;border-color:#5b9bd5;color:#90bce8}}
-.thumb-strip{display:flex;gap:6px;padding:4px 16px 10px;flex-wrap:wrap}
-.thumb{width:58px;height:58px;border-radius:7px;overflow:hidden;border:1px solid #dce3ee;flex-shrink:0;cursor:pointer}
-.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb-strip{display:flex;gap:10px;padding:8px 16px 10px;flex-wrap:wrap}
+.thumb{width:58px;height:58px;border-radius:7px;overflow:visible;border:1px solid #dce3ee;flex-shrink:0;cursor:default;position:relative}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block;border-radius:7px}
+.thumb-del{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#dc2626;color:#fff;border:2px solid #fff;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;font-family:Arial,sans-serif}
+.thumb-del:hover{background:#b91c1c}
+@media(prefers-color-scheme:dark){.thumb-del{border-color:#222}}
 @media(prefers-color-scheme:dark){.thumb{border-color:#333}}
 .opt-row{display:flex;align-items:center;gap:10px;padding:11px 16px;border-top:1px solid #f0f3f8;flex-wrap:wrap}
 @media(prefers-color-scheme:dark){.opt-row{border-color:#2a2a2a}}
@@ -131,9 +152,9 @@ input[type=file]{display:none}
 @media(prefers-color-scheme:dark){.sec-gal{background:#1e1e1e;border-color:#2a2a2a}}
 .sec-gal-lbl{font-size:11px;font-weight:700;color:#6b7a99;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px}
 @media(prefers-color-scheme:dark){.sec-gal-lbl{color:#555}}
-.sec-gal-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
-.sg-th{width:54px;height:54px;border-radius:7px;overflow:hidden;border:1px solid #dce3ee;flex-shrink:0;cursor:pointer}
-.sg-th img{width:100%;height:100%;object-fit:cover;display:block}
+.sec-gal-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px;padding-top:4px}
+.sg-th{width:54px;height:54px;border-radius:7px;overflow:visible;border:1px solid #dce3ee;flex-shrink:0;cursor:default;position:relative}
+.sg-th img{width:100%;height:100%;object-fit:cover;display:block;border-radius:7px}
 .sg-add{width:54px;height:54px;border-radius:7px;border:1px dashed #c8d4e8;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6b7a99;font-size:24px;flex-shrink:0;font-family:Arial,sans-serif}
 .sg-add:hover{background:#eef3fb}
 @media(prefers-color-scheme:dark){.sg-th{border-color:#333}.sg-add{border-color:#444;color:#666}}
@@ -170,6 +191,7 @@ input[type=file]{display:none}
 <div class="topbar">
   <div class="top-title"><h1>Supermarket energy audit</h1><p id="adate"></p></div>
   <div class="score-box" id="tscore">0/100<span>audit score</span></div>
+  <button class="reset-btn" onclick="showResetModal()">&#8635; Reset</button>
 </div>
 <div class="prog"><div class="prog-fill" id="pfill" style="width:0%"></div></div>
 
@@ -528,8 +550,19 @@ function onCamFile(input, sid, cid) {
   reader.onload = function(e) {
     var th = document.createElement('div'); th.className = 'thumb';
     var img = document.createElement('img'); img.src = e.target.result;
-    img.onclick = function() { th.remove(); if (!strip.children.length) strip.style.display = 'none'; };
-    th.appendChild(img); strip.appendChild(th);
+    var delBtn = document.createElement('button');
+    delBtn.className = 'thumb-del';
+    delBtn.innerHTML = '&times;';
+    delBtn.title = 'Remove photo';
+    delBtn.onclick = function(ev) {
+      ev.stopPropagation();
+      th.remove();
+      if (!strip.children.length) {
+        strip.style.display = 'none';
+        document.getElementById(cid).classList.remove('has');
+      }
+    };
+    th.appendChild(img); th.appendChild(delBtn); strip.appendChild(th);
     document.getElementById(cid).classList.add('has');
   };
   reader.readAsDataURL(input.files[0]);
@@ -542,8 +575,12 @@ function onSecGalFile(input, rid) {
   reader.onload = function(e) {
     var th = document.createElement('div'); th.className = 'sg-th';
     var img = document.createElement('img'); img.src = e.target.result;
-    img.onclick = function() { th.remove(); };
-    th.appendChild(img);
+    var delBtn = document.createElement('button');
+    delBtn.className = 'thumb-del';
+    delBtn.innerHTML = '&times;';
+    delBtn.title = 'Remove photo';
+    delBtn.onclick = function(ev) { ev.stopPropagation(); th.remove(); };
+    th.appendChild(img); th.appendChild(delBtn);
     row.insertBefore(th, row.querySelector('.sg-add'));
   };
   reader.readAsDataURL(input.files[0]);
@@ -599,7 +636,75 @@ function recalc() {
   document.getElementById('ftxt').textContent = 'Supermarket energy audit  |  Score: ' + ov + '%  |  ' + tp + '/' + tm + ' pts';
 }
 
+// ── RESET AUDIT ───────────────────────────────────────────────────────────────
+function showResetModal() {
+  document.getElementById('reset-modal').classList.add('show');
+}
+function hideResetModal() {
+  document.getElementById('reset-modal').classList.remove('show');
+}
+function doReset() {
+  // Clear all yes/no/na answers and row highlighting
+  answers = {};
+  document.querySelectorAll('.q-row').forEach(function(row) {
+    row.classList.remove('ans-yes', 'ans-no');
+    row.querySelectorAll('.yn').forEach(function(b) { b.classList.remove('sel'); });
+  });
+  // Clear all dropdown selects back to first option
+  document.querySelectorAll('.opt-sel').forEach(function(sel) { sel.selectedIndex = 0; });
+  // Clear all findings textareas and gallery captions
+  document.querySelectorAll('.frow textarea, .sec-gal-cap').forEach(function(ta) { ta.value = ''; });
+  // Clear all photos (per-question thumbs and section galleries)
+  document.querySelectorAll('.thumb-strip').forEach(function(strip) {
+    strip.innerHTML = '';
+    strip.style.display = 'none';
+  });
+  document.querySelectorAll('.cam-btn').forEach(function(b) { b.classList.remove('has'); });
+  document.querySelectorAll('.sec-gal-row').forEach(function(row) {
+    row.querySelectorAll('.sg-th').forEach(function(th) { th.remove(); });
+  });
+  // Reset all site info fields
+  document.querySelectorAll('.si-field input[type="text"], .si-field input[type="number"], .si-field input[type="tel"], .si-field textarea').forEach(function(f) {
+    if (f.id !== 'audit-ref') f.value = '';
+  });
+  document.querySelectorAll('.si-field select').forEach(function(s) { s.selectedIndex = 0; });
+  document.getElementById('gps-val').value = '';
+  document.getElementById('gps-status').textContent = 'Tap Get GPS to capture current location';
+  document.getElementById('gps-status').className = 'gps-status';
+  document.getElementById('map-link').style.display = 'none';
+  // Reset audit date to today
+  var t = new Date();
+  document.getElementById('audit-date-field').value = t.toISOString().split('T')[0];
+  // Generate a fresh reference number for the new store visit
+  sessionStorage.removeItem('cfm_audit_ref');
+  var ds = t.getFullYear() + String(t.getMonth()+1).padStart(2,'0') + String(t.getDate()).padStart(2,'0');
+  var sk = 'cfm_audit_seq_' + ds;
+  var sq = parseInt(localStorage.getItem(sk) || '0') + 1;
+  localStorage.setItem(sk, sq);
+  var newRef = 'CFM-EA-' + ds + '-' + String(sq).padStart(3,'0');
+  sessionStorage.setItem('cfm_audit_ref', newRef);
+  document.getElementById('audit-ref').value = newRef;
+  document.getElementById('siteinfo-ref-preview').textContent = newRef;
+  // Switch back to first tab
+  document.querySelectorAll('.tab').forEach(function(t, i) { t.classList.toggle('on', i === 0); });
+  document.querySelectorAll('.sec').forEach(function(s, i) { s.classList.toggle('vis', i === 0); });
+  // Scroll to top
+  window.scrollTo({top: 0, behavior: 'smooth'});
+  hideResetModal();
+  recalc();
+}
+
 recalc();
 </script>
+<div class="modal-overlay" id="reset-modal">
+  <div class="modal-box">
+    <div class="modal-title">Reset audit?</div>
+    <div class="modal-text">This clears all answers, photos, notes, and site information so you can start a new store audit. This cannot be undone.</div>
+    <div class="modal-btns">
+      <button class="modal-btn" onclick="hideResetModal()">Cancel</button>
+      <button class="modal-btn danger" onclick="doReset()">Reset everything</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
