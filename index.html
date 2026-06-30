@@ -31,6 +31,14 @@ body{font-family:Arial,sans-serif;background:#f5f6f8;color:#1a1a1a;font-size:15p
 .reset-btn:hover{background:#fee2e2}
 @media(prefers-color-scheme:dark){.reset-btn{border-color:#f87171;color:#f87171}.reset-btn:hover{background:#2d0a0a}}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.lightbox-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);display:none;align-items:center;justify-content:center;z-index:2000;padding:20px;flex-direction:column}
+.lightbox-overlay.show{display:flex}
+.lightbox-overlay img{max-width:100%;max-height:80vh;border-radius:8px;object-fit:contain}
+.lightbox-close{position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.15);color:#fff;border:none;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.lightbox-close:hover{background:rgba(255,255,255,0.3)}
+.lightbox-del{margin-top:16px;padding:10px 22px;border-radius:8px;background:#dc2626;color:#fff;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif}
+.lightbox-del:hover{background:#b91c1c}
+.lightbox-caption{color:#ccc;font-size:13px;margin-top:14px;text-align:center;max-width:90%}
 .modal-overlay.show{display:flex}
 .modal-box{background:#fff;border-radius:12px;padding:20px;max-width:340px;width:100%}
 @media(prefers-color-scheme:dark){.modal-box{background:#222}}
@@ -128,6 +136,7 @@ input[type=file]{display:none}
 @media(prefers-color-scheme:dark){.cam-btn{border-color:#444;color:#888}.cam-btn.has{background:#1a2d42;border-color:#5b9bd5;color:#90bce8}}
 .thumb-strip{display:flex;gap:10px;padding:8px 16px 10px;flex-wrap:wrap}
 .thumb{width:58px;height:58px;border-radius:7px;overflow:visible;border:1px solid #dce3ee;flex-shrink:0;cursor:default;position:relative}
+.thumb img{cursor:pointer}
 .thumb img{width:100%;height:100%;object-fit:cover;display:block;border-radius:7px}
 .thumb-del{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#dc2626;color:#fff;border:2px solid #fff;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;font-family:Arial,sans-serif}
 .thumb-del:hover{background:#b91c1c}
@@ -154,6 +163,7 @@ input[type=file]{display:none}
 @media(prefers-color-scheme:dark){.sec-gal-lbl{color:#555}}
 .sec-gal-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px;padding-top:4px}
 .sg-th{width:54px;height:54px;border-radius:7px;overflow:visible;border:1px solid #dce3ee;flex-shrink:0;cursor:default;position:relative}
+.sg-th img{cursor:pointer}
 .sg-th img{width:100%;height:100%;object-fit:cover;display:block;border-radius:7px}
 .sg-add{width:54px;height:54px;border-radius:7px;border:1px dashed #c8d4e8;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#6b7a99;font-size:24px;flex-shrink:0;font-family:Arial,sans-serif}
 .sg-add:hover{background:#eef3fb}
@@ -171,6 +181,7 @@ input[type=file]{display:none}
   body{background:#fff!important}
   .wrap{padding:8px}
   .print-btn{display:none}
+  .reset-btn{display:none}
   .siteinfo-body.hidden{display:grid!important}
   .siteinfo-arrow{display:none}
   .sec{display:block!important}
@@ -180,7 +191,18 @@ input[type=file]{display:none}
   .q-row.ans-no{background:#fff5f5!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .cam-btn,.sg-add,.gps-btn{display:none}
   .thumb-strip,.sec-gal{break-inside:avoid}
-}</style>
+  .thumb-del,.sg-th .thumb-del{display:none}
+  .photo-appendix{display:block!important;break-before:page}
+  .photo-appendix-item{break-inside:avoid}
+}
+.photo-appendix{display:none}
+@media screen{.photo-appendix{display:none!important}}
+.photo-appendix-title{font-size:20px;font-weight:700;color:#1F4E79;margin-bottom:4px;padding-top:10px}
+.photo-appendix-sub{font-size:12px;color:#6b7a99;margin-bottom:20px}
+.photo-appendix-item{margin-bottom:24px;page-break-inside:avoid}
+.photo-appendix-label{font-size:12px;font-weight:700;color:#1F4E79;background:#f0f5ff;border:1px solid #dce3ee;border-radius:6px 6px 0 0;padding:8px 12px}
+.photo-appendix-img{width:100%;max-height:480px;object-fit:contain;border:1px solid #dce3ee;border-top:none;border-radius:0 0 6px 6px;background:#f8fafc;display:block}
+.photo-appendix-empty{font-size:13px;color:#6b7a99;font-style:italic}</style>
 </head>
 <body>
 <div class="wrap">
@@ -317,9 +339,14 @@ input[type=file]{display:none}
 </div>
 <div class="tabs" id="tabs"></div>
 <div id="secs"></div>
+<div class="photo-appendix" id="photo-appendix">
+  <div class="photo-appendix-title">Photo Appendix</div>
+  <div class="photo-appendix-sub">Full-size photos referenced in this audit, labelled by section and question.</div>
+  <div id="photo-appendix-body"></div>
+</div>
 <div class="footer">
   <span class="footer-txt" id="ftxt">Supermarket energy audit &nbsp;|&nbsp; 6 sections</span>
-  <button class="print-btn" onclick="window.print()">Print / save as PDF</button>
+  <button class="print-btn" onclick="printAudit()">Print / save as PDF</button>
 </div>
 </div>
 <script>
@@ -498,6 +525,8 @@ DATA.forEach(function(sec, si) {
 
   (sec.questions || []).forEach(function(q) {
     var cid = 'cam-' + q.id, sid = 'strip-' + q.id, fid = 'file-' + q.id;
+    var qLabelEsc = q.q.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+    var secLabelEsc = sec.label.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
     h += '<div class="q-row" id="qr-' + q.id + '">'
       + '<div class="q-text"><div class="q-label">' + q.q + '</div>'
       + (q.n ? '<div class="q-note">' + q.n + '</div>' : '')
@@ -509,6 +538,7 @@ DATA.forEach(function(sec, si) {
       + '<button class="yn na" onclick="ans(\'' + q.id + '\',\'na\',0)">N/A</button>'
       + '<button class="cam-btn" id="' + cid + '" onclick="trigCam(\'' + fid + '\')" title="Add photo">&#128247;</button>'
       + '<input type="file" id="' + fid + '" accept="image/*" capture="environment"'
+      + ' data-sec-label="' + secLabelEsc + '" data-q-label="' + qLabelEsc + '"'
       + ' onchange="onCamFile(this,\'' + sid + '\',\'' + cid + '\')">'
       + '</div></div>'
       + '<div class="thumb-strip" id="' + sid + '" style="display:none"></div>';
@@ -527,13 +557,15 @@ DATA.forEach(function(sec, si) {
   });
 
   var gri = 'sgrow-' + sec.id, gfi = 'sgfile-' + sec.id;
+  var secLabelEsc2 = sec.label.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
   h += '<div class="sec-gal"><div class="sec-gal-lbl">' + sec.label + ' — section photos</div>'
     + '<div class="sec-gal-row" id="' + gri + '">'
     + '<button class="sg-add" onclick="trigCam(\'' + gfi + '\')">+</button>'
     + '<input type="file" id="' + gfi + '" accept="image/*" capture="environment"'
+    + ' data-sec-label="' + secLabelEsc2 + '"'
     + ' onchange="onSecGalFile(this,\'' + gri + '\')">'
     + '</div>'
-    + '<textarea class="sec-gal-cap" placeholder="Caption or notes for section photos..."></textarea></div>';
+    + '<textarea class="sec-gal-cap" id="cap-' + sec.id + '" placeholder="Caption or notes for section photos..."></textarea></div>';
 
   h += '</div>';
   div.innerHTML = h;
@@ -546,10 +578,24 @@ function onCamFile(input, sid, cid) {
   if (!input.files || !input.files[0]) return;
   var strip = document.getElementById(sid);
   strip.style.display = 'flex';
+  var secLabel = input.dataset.secLabel || '';
+  var qLabel = input.dataset.qLabel || '';
   var reader = new FileReader();
   reader.onload = function(e) {
     var th = document.createElement('div'); th.className = 'thumb';
+    th.dataset.secLabel = secLabel;
+    th.dataset.qLabel = qLabel;
+    th.dataset.src = e.target.result;
     var img = document.createElement('img'); img.src = e.target.result;
+    img.onclick = function() {
+      openLightbox(e.target.result, function() {
+        th.remove();
+        if (!strip.children.length) {
+          strip.style.display = 'none';
+          document.getElementById(cid).classList.remove('has');
+        }
+      });
+    };
     var delBtn = document.createElement('button');
     delBtn.className = 'thumb-del';
     delBtn.innerHTML = '&times;';
@@ -571,10 +617,16 @@ function onCamFile(input, sid, cid) {
 function onSecGalFile(input, rid) {
   if (!input.files || !input.files[0]) return;
   var row = document.getElementById(rid);
+  var secLabel = input.dataset.secLabel || '';
   var reader = new FileReader();
   reader.onload = function(e) {
     var th = document.createElement('div'); th.className = 'sg-th';
+    th.dataset.secLabel = secLabel;
+    th.dataset.src = e.target.result;
     var img = document.createElement('img'); img.src = e.target.result;
+    img.onclick = function() {
+      openLightbox(e.target.result, function() { th.remove(); });
+    };
     var delBtn = document.createElement('button');
     delBtn.className = 'thumb-del';
     delBtn.innerHTML = '&times;';
@@ -584,6 +636,26 @@ function onSecGalFile(input, rid) {
     row.insertBefore(th, row.querySelector('.sg-add'));
   };
   reader.readAsDataURL(input.files[0]);
+}
+
+// ── LIGHTBOX (full-size photo viewer) ───────────────────────────────────────────
+var lightboxDeleteCallback = null;
+
+function openLightbox(src, onDelete) {
+  document.getElementById('lightbox-img').src = src;
+  lightboxDeleteCallback = onDelete;
+  document.getElementById('lightbox-overlay').classList.add('show');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox-overlay').classList.remove('show');
+  document.getElementById('lightbox-img').src = '';
+  lightboxDeleteCallback = null;
+}
+
+function deleteLightboxPhoto() {
+  if (lightboxDeleteCallback) lightboxDeleteCallback();
+  closeLightbox();
 }
 
 function ans(qid, val, pts) {
@@ -644,6 +716,8 @@ function hideResetModal() {
   document.getElementById('reset-modal').classList.remove('show');
 }
 function doReset() {
+  closeLightbox();
+  document.getElementById('photo-appendix-body').innerHTML = '';
   // Clear all yes/no/na answers and row highlighting
   answers = {};
   document.querySelectorAll('.q-row').forEach(function(row) {
@@ -694,6 +768,62 @@ function doReset() {
   recalc();
 }
 
+// ── PHOTO APPENDIX (full-size labelled photos for print/PDF) ───────────────────
+function buildPhotoAppendix() {
+  var body = document.getElementById('photo-appendix-body');
+  body.innerHTML = '';
+  var count = 0;
+
+  // Per-question photos
+  document.querySelectorAll('.thumb').forEach(function(th) {
+    var src = th.dataset.src;
+    if (!src) return;
+    var secLabel = th.dataset.secLabel || '';
+    var qLabel = th.dataset.qLabel || '';
+    var item = document.createElement('div');
+    item.className = 'photo-appendix-item';
+    var labelDiv = document.createElement('div');
+    labelDiv.className = 'photo-appendix-label';
+    labelDiv.textContent = secLabel + (qLabel ? ' — ' + qLabel : '');
+    var img = document.createElement('img');
+    img.className = 'photo-appendix-img';
+    img.src = src;
+    item.appendChild(labelDiv);
+    item.appendChild(img);
+    body.appendChild(item);
+    count++;
+  });
+
+  // Section gallery photos
+  document.querySelectorAll('.sg-th').forEach(function(th) {
+    var src = th.dataset.src;
+    if (!src) return;
+    var secLabel = th.dataset.secLabel || '';
+    var item = document.createElement('div');
+    item.className = 'photo-appendix-item';
+    var labelDiv = document.createElement('div');
+    labelDiv.className = 'photo-appendix-label';
+    labelDiv.textContent = secLabel + ' — section photo';
+    var img = document.createElement('img');
+    img.className = 'photo-appendix-img';
+    img.src = src;
+    item.appendChild(labelDiv);
+    item.appendChild(img);
+    body.appendChild(item);
+    count++;
+  });
+
+  if (count === 0) {
+    body.innerHTML = '<div class="photo-appendix-empty">No photos were added during this audit.</div>';
+  }
+}
+
+function printAudit() {
+  buildPhotoAppendix();
+  window.print();
+}
+window.onbeforeprint = buildPhotoAppendix;
+
 recalc();
 </script>
 <div class="modal-overlay" id="reset-modal">
@@ -705,6 +835,11 @@ recalc();
       <button class="modal-btn danger" onclick="doReset()">Reset everything</button>
     </div>
   </div>
+</div>
+<div class="lightbox-overlay" id="lightbox-overlay" onclick="if(event.target===this)closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+  <img id="lightbox-img" src="" alt="Audit photo">
+  <button class="lightbox-del" id="lightbox-del-btn" onclick="deleteLightboxPhoto()">Remove this photo</button>
 </div>
 </body>
 </html>
