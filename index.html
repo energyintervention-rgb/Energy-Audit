@@ -192,16 +192,21 @@ input[type=file]{display:none}
   .cam-btn,.sg-add,.gps-btn{display:none}
   .thumb-strip,.sec-gal{break-inside:avoid}
   .thumb-del,.sg-th .thumb-del{display:none}
-  .photo-appendix{display:block!important;break-before:page}
+  .photo-appendix{display:block!important}
+  .photo-appendix-page{break-before:page;break-inside:avoid}
+  .photo-appendix-page:first-child{break-before:auto}
   .photo-appendix-item{break-inside:avoid}
 }
 .photo-appendix{display:none}
 @media screen{.photo-appendix{display:none!important}}
 .photo-appendix-title{font-size:20px;font-weight:700;color:#1F4E79;margin-bottom:4px;padding-top:10px}
-.photo-appendix-sub{font-size:12px;color:#6b7a99;margin-bottom:20px}
-.photo-appendix-item{margin-bottom:24px;page-break-inside:avoid}
-.photo-appendix-label{font-size:12px;font-weight:700;color:#1F4E79;background:#f0f5ff;border:1px solid #dce3ee;border-radius:6px 6px 0 0;padding:8px 12px}
-.photo-appendix-img{width:100%;max-height:480px;object-fit:contain;border:1px solid #dce3ee;border-top:none;border-radius:0 0 6px 6px;background:#f8fafc;display:block}
+.photo-appendix-sub{font-size:12px;color:#6b7a99;margin-bottom:16px}
+.photo-appendix-page{margin-bottom:8px}
+.photo-appendix-page-lbl{font-size:10px;color:#9aa6b8;text-align:center;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em}
+.photo-appendix-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.photo-appendix-item{border:1px solid #dce3ee;border-radius:6px;overflow:hidden}
+.photo-appendix-label{font-size:9px;font-weight:700;color:#1F4E79;background:#f0f5ff;padding:5px 7px;line-height:1.3;border-bottom:1px solid #dce3ee;min-height:26px}
+.photo-appendix-img{width:100%;height:140px;object-fit:cover;background:#f8fafc;display:block}
 .photo-appendix-empty{font-size:13px;color:#6b7a99;font-style:italic}</style>
 </head>
 <body>
@@ -772,49 +777,61 @@ function doReset() {
 function buildPhotoAppendix() {
   var body = document.getElementById('photo-appendix-body');
   body.innerHTML = '';
-  var count = 0;
 
-  // Per-question photos
+  // Collect all photos with their labels, in document order
+  var photos = [];
   document.querySelectorAll('.thumb').forEach(function(th) {
     var src = th.dataset.src;
     if (!src) return;
     var secLabel = th.dataset.secLabel || '';
     var qLabel = th.dataset.qLabel || '';
-    var item = document.createElement('div');
-    item.className = 'photo-appendix-item';
-    var labelDiv = document.createElement('div');
-    labelDiv.className = 'photo-appendix-label';
-    labelDiv.textContent = secLabel + (qLabel ? ' — ' + qLabel : '');
-    var img = document.createElement('img');
-    img.className = 'photo-appendix-img';
-    img.src = src;
-    item.appendChild(labelDiv);
-    item.appendChild(img);
-    body.appendChild(item);
-    count++;
+    photos.push({ src: src, label: secLabel + (qLabel ? ' — ' + qLabel : '') });
   });
-
-  // Section gallery photos
   document.querySelectorAll('.sg-th').forEach(function(th) {
     var src = th.dataset.src;
     if (!src) return;
     var secLabel = th.dataset.secLabel || '';
-    var item = document.createElement('div');
-    item.className = 'photo-appendix-item';
-    var labelDiv = document.createElement('div');
-    labelDiv.className = 'photo-appendix-label';
-    labelDiv.textContent = secLabel + ' — section photo';
-    var img = document.createElement('img');
-    img.className = 'photo-appendix-img';
-    img.src = src;
-    item.appendChild(labelDiv);
-    item.appendChild(img);
-    body.appendChild(item);
-    count++;
+    photos.push({ src: src, label: secLabel + ' — section photo' });
   });
 
-  if (count === 0) {
+  if (photos.length === 0) {
     body.innerHTML = '<div class="photo-appendix-empty">No photos were added during this audit.</div>';
+    return;
+  }
+
+  // Chunk into groups of 8 (2x4 grid per printed page)
+  var perPage = 8;
+  var pageCount = Math.ceil(photos.length / perPage);
+
+  for (var p = 0; p < pageCount; p++) {
+    var pageDiv = document.createElement('div');
+    pageDiv.className = 'photo-appendix-page';
+
+    var pageLbl = document.createElement('div');
+    pageLbl.className = 'photo-appendix-page-lbl';
+    pageLbl.textContent = 'Page ' + (p + 1) + ' of ' + pageCount + ' — photos ' + (p * perPage + 1) + '\u2013' + Math.min((p + 1) * perPage, photos.length) + ' of ' + photos.length;
+    pageDiv.appendChild(pageLbl);
+
+    var grid = document.createElement('div');
+    grid.className = 'photo-appendix-grid';
+
+    var chunk = photos.slice(p * perPage, p * perPage + perPage);
+    chunk.forEach(function(photo) {
+      var item = document.createElement('div');
+      item.className = 'photo-appendix-item';
+      var labelDiv = document.createElement('div');
+      labelDiv.className = 'photo-appendix-label';
+      labelDiv.textContent = photo.label;
+      var img = document.createElement('img');
+      img.className = 'photo-appendix-img';
+      img.src = photo.src;
+      item.appendChild(labelDiv);
+      item.appendChild(img);
+      grid.appendChild(item);
+    });
+
+    pageDiv.appendChild(grid);
+    body.appendChild(pageDiv);
   }
 }
 
