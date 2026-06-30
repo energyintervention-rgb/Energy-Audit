@@ -132,6 +132,18 @@ body{font-family:Arial,sans-serif;background:#f5f6f8;color:#1a1a1a;font-size:15p
 @media(prefers-color-scheme:dark){.yn{border-color:#444;color:#888}.yn.yes.sel{background:#052e16;border-color:#16a34a;color:#4ade80}.yn.no.sel{background:#2d0a0a;border-color:#dc2626;color:#f87171}.yn.na.sel{background:#2a2a2a;border-color:#555;color:#999}}
 input[type=file]{display:none}
 .cam-btn{width:30px;height:30px;border:1px solid #c8d4e8;border-radius:7px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;padding:0;color:#6b7a99}
+.note-btn{width:30px;height:30px;border:1px solid #c8d4e8;border-radius:7px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;padding:0;color:#6b7a99}
+.note-btn.has{background:#fff3cd;border-color:#d4a017;color:#92400e}
+@media(prefers-color-scheme:dark){.note-btn{border-color:#444;color:#888}.note-btn.has{background:#3d2e0a;border-color:#d4a017;color:#fbbf24}}
+.note-preview{margin:0 16px 8px;padding:8px 10px;background:#f8fafc;border-left:3px solid #2E75B6;border-radius:0 6px 6px 0;font-size:12px;color:#5a6a84;display:none}
+.note-preview.show{display:block}
+@media(prefers-color-scheme:dark){.note-preview{background:#1e1e1e;color:#aaa}}
+.note-area{padding:0 16px 12px;display:none}
+.note-area.open{display:block}
+.note-area textarea{width:100%;border:1px solid #c8d4e8;border-radius:7px;background:#f8fafc;color:#1a1a1a;font-size:13px;padding:8px 10px;resize:vertical;min-height:56px;font-family:Arial,sans-serif;line-height:1.5}
+.note-area textarea:focus{outline:none;border-color:#2E75B6;background:#fff}
+@media(prefers-color-scheme:dark){.note-area textarea{background:#1e1e1e;border-color:#444;color:#e8e8e8}.note-area textarea:focus{background:#222}}
+@media print{.note-btn{display:none}.note-area{display:block!important;padding:0 16px 10px}.note-preview{display:none!important}}
 .cam-btn.has{background:#e8f1fb;border-color:#2E75B6;color:#1F4E79}
 @media(prefers-color-scheme:dark){.cam-btn{border-color:#444;color:#888}.cam-btn.has{background:#1a2d42;border-color:#5b9bd5;color:#90bce8}}
 .thumb-strip{display:flex;gap:10px;padding:8px 16px 10px;flex-wrap:wrap}
@@ -228,6 +240,7 @@ input[type=file]{display:none}
 .photo-appendix-label{font-size:9px;font-weight:700;color:#1F4E79;background:#f0f5ff;padding:5px 7px;line-height:1.3;border-bottom:1px solid #dce3ee;min-height:26px}
 .photo-appendix-img{width:100%;height:140px;object-fit:cover;background:#f8fafc;display:block}
 .photo-appendix-empty{font-size:13px;color:#6b7a99;font-style:italic}</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -389,6 +402,13 @@ input[type=file]{display:none}
           <span class="export-opt-text">
             <span class="export-opt-title">Save as file (.json)</span>
             <span class="export-opt-sub">Continue editing later</span>
+          </span>
+        </div>
+        <div class="export-opt" onclick="exportExcel()">
+          <span class="export-opt-icon">&#128202;</span>
+          <span class="export-opt-text">
+            <span class="export-opt-title">Save as Excel (.xlsx)</span>
+            <span class="export-opt-sub">Tables for review or reporting</span>
           </span>
         </div>
       </div>
@@ -634,6 +654,7 @@ DATA.forEach(function(sec, si) {
 
   (sec.questions || []).forEach(function(q) {
     var cid = 'cam-' + q.id, sid = 'strip-' + q.id, fid = 'file-' + q.id;
+    var nid = 'note-' + q.id, npid = 'npreview-' + q.id, nbid = 'nbtn-' + q.id;
     var qLabelEsc = q.q.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
     var secLabelEsc = sec.label.replace(/'/g, '&#39;').replace(/"/g, '&quot;');
     h += '<div class="q-row" id="qr-' + q.id + '">'
@@ -649,8 +670,13 @@ DATA.forEach(function(sec, si) {
       + '<input type="file" id="' + fid + '" accept="image/*" capture="environment"'
       + ' data-sec-label="' + secLabelEsc + '" data-q-label="' + qLabelEsc + '"'
       + ' onchange="onCamFile(this,\'' + sid + '\',\'' + cid + '\')">'
+      + '<button class="note-btn" id="' + nbid + '" onclick="toggleNote(\'' + nid + '\',\'' + nbid + '\')" title="Add note">&#128221;</button>'
       + '</div></div>'
-      + '<div class="thumb-strip" id="' + sid + '" style="display:none"></div>';
+      + '<div class="thumb-strip" id="' + sid + '" style="display:none"></div>'
+      + '<div class="note-preview" id="' + npid + '"></div>'
+      + '<div class="note-area" id="' + nid + '">'
+      + '<textarea placeholder="Add a note for this item..." oninput="onNoteInput(\'' + q.id + '\',\'' + npid + '\',\'' + nbid + '\')"></textarea>'
+      + '</div>';
   });
 
   (sec.selects || []).forEach(function(s) {
@@ -726,6 +752,41 @@ function deleteLightboxPhoto() {
   closeLightbox();
 }
 
+// ── PER-QUESTION NOTES ───────────────────────────────────────────────────────
+function toggleNote(noteId, btnId) {
+  var area = document.getElementById(noteId);
+  var btn = document.getElementById(btnId);
+  area.classList.toggle('open');
+  if (area.classList.contains('open')) {
+    var ta = area.querySelector('textarea');
+    if (ta) ta.focus();
+    // hide the preview snippet while editing — the open textarea already shows it
+    var npid = 'npreview-' + noteId.replace('note-', '');
+    var preview = document.getElementById(npid);
+    if (preview) preview.classList.remove('show');
+  } else {
+    onNoteInput(noteId.replace('note-', ''), 'npreview-' + noteId.replace('note-', ''), btnId);
+  }
+}
+
+function onNoteInput(qid, npid, nbid) {
+  var area = document.getElementById('note-' + qid);
+  var ta = area ? area.querySelector('textarea') : null;
+  var preview = document.getElementById(npid);
+  var btn = document.getElementById(nbid);
+  if (!ta) return;
+  var val = ta.value.trim();
+  if (btn) btn.classList.toggle('has', val.length > 0);
+  if (preview) {
+    if (val.length > 0 && !area.classList.contains('open')) {
+      preview.textContent = val;
+      preview.classList.add('show');
+    } else {
+      preview.classList.remove('show');
+    }
+  }
+}
+
 function ans(qid, val, pts) {
   answers[qid] = {val: val, pts: pts};
   var row = document.getElementById('qr-' + qid);
@@ -796,6 +857,11 @@ function doReset() {
   document.querySelectorAll('.opt-sel').forEach(function(sel) { sel.selectedIndex = 0; });
   // Clear all findings textareas and gallery captions
   document.querySelectorAll('.frow textarea, .sec-gal-cap').forEach(function(ta) { ta.value = ''; });
+  // Clear all per-question notes
+  document.querySelectorAll('.note-area textarea').forEach(function(ta) { ta.value = ''; });
+  document.querySelectorAll('.note-area').forEach(function(area) { area.classList.remove('open'); });
+  document.querySelectorAll('.note-preview').forEach(function(p) { p.classList.remove('show'); p.textContent = ''; });
+  document.querySelectorAll('.note-btn').forEach(function(b) { b.classList.remove('has'); });
   // Clear all photos (per-question thumbs and section galleries)
   document.querySelectorAll('.thumb-strip').forEach(function(strip) {
     strip.innerHTML = '';
@@ -929,7 +995,7 @@ function exportPDF() {
 
 // ── BUILD STATE OBJECT (used by JSON export) ───────────────────────────────────
 function collectAuditState() {
-  var state = { version: 1, savedAt: new Date().toISOString(), siteInfo: {}, answers: {}, selects: {}, findings: {}, photos: { thumbs: [], secGal: [] } };
+  var state = { version: 2, savedAt: new Date().toISOString(), siteInfo: {}, answers: {}, selects: {}, findings: {}, questionNotes: {}, photos: { thumbs: [], secGal: [] } };
 
   // Site info fields
   document.querySelectorAll('.si-field input, .si-field select, .si-field textarea').forEach(function(el) {
@@ -951,6 +1017,15 @@ function collectAuditState() {
   });
   document.querySelectorAll('.sec-gal-cap').forEach(function(el) {
     if (el.id) state.findings[el.id] = el.value;
+  });
+
+  // Per-question notes
+  document.querySelectorAll('.note-area textarea').forEach(function(ta) {
+    var area = ta.closest('.note-area');
+    if (!area || !area.id) return;
+    var qid = area.id.replace('note-', '');
+    var val = ta.value.trim();
+    if (val) state.questionNotes[qid] = val;
   });
 
   // Per-question photos
@@ -995,6 +1070,139 @@ function exportJSON() {
   document.body.removeChild(a);
   setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
   showToast('Saved as ' + safeName + '.json');
+}
+
+// ── EXCEL EXPORT (5-sheet workbook via SheetJS) ─────────────────────────────────
+function getSafeAuditFilename() {
+  var refVal = document.getElementById('audit-ref').value || 'audit';
+  var storeName = document.getElementById('si-store-name') ? document.getElementById('si-store-name').value : '';
+  return (refVal + (storeName ? '-' + storeName : '')).replace(/[^a-z0-9\-]+/gi, '_');
+}
+
+function exportExcel() {
+  document.getElementById('export-menu').classList.remove('show');
+  if (typeof XLSX === 'undefined') {
+    showToast('Excel export library failed to load — check your internet connection.');
+    return;
+  }
+
+  var wb = XLSX.utils.book_new();
+
+  // ── SHEET 1: Site Info ──────────────────────────────────────────────────
+  var siteLabels = {
+    'audit-ref': 'Audit reference no.', 'si-store-code': 'Store code', 'si-store-name': 'Store name',
+    'si-store-type': 'Store type', 'si-address': 'Address', 'si-state': 'State',
+    'si-floor-area': 'Floor area (m2)', 'si-hours': 'Operating hours', 'gps-val': 'GPS location',
+    'si-auditor-name': 'Auditor name', 'si-auditor-company': 'Auditor company', 'audit-date-field': 'Audit date',
+    'si-contact-person': 'Site contact person', 'si-contact-number': 'Site contact number',
+    'si-monthly-bill': 'Avg monthly bill (RM)', 'si-tariff': 'TNB tariff category',
+    'si-max-demand': 'Max demand (kW)', 'si-notes': 'General site notes'
+  };
+  var siteRows = [['Supermarket Energy Audit \u2014 Site Information'], []];
+  Object.keys(siteLabels).forEach(function(id) {
+    var el = document.getElementById(id);
+    siteRows.push([siteLabels[id], el ? el.value : '']);
+  });
+  var ws1 = XLSX.utils.aoa_to_sheet(siteRows);
+  ws1['!cols'] = [{ wch: 26 }, { wch: 40 }];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Site Info');
+
+  // ── SHEET 2: Score Summary ──────────────────────────────────────────────
+  var scoreRows = [['Audit Score Summary'], [], ['Section', 'Score achieved', 'Max score', '% Score']];
+  var grandPts = 0, grandMax = 0;
+  DATA.forEach(function(sec) {
+    var pts = 0, max = 0;
+    (sec.questions || []).forEach(function(q) {
+      max += q.p;
+      if (answers[q.id]) pts += answers[q.id].pts;
+    });
+    (sec.selects || []).forEach(function(s) {
+      var el = document.getElementById(s.id);
+      var vals = s.opts.map(function(o) { return parseInt(o[0]) || 0; });
+      var maxV = Math.max.apply(null, [0].concat(vals));
+      max += maxV;
+      pts += parseInt(el ? el.value : 0) || 0;
+    });
+    grandPts += pts; grandMax += max;
+    scoreRows.push([sec.label, pts, max, max > 0 ? pts / max : 0]);
+  });
+  scoreRows.push(['TOTAL', grandPts, grandMax, grandMax > 0 ? grandPts / grandMax : 0]);
+  var ws2 = XLSX.utils.aoa_to_sheet(scoreRows);
+  ws2['!cols'] = [{ wch: 26 }, { wch: 16 }, { wch: 12 }, { wch: 10 }];
+  // Format the % column as percentage
+  for (var r = 4; r <= scoreRows.length; r++) {
+    var cellRef = 'D' + r;
+    if (ws2[cellRef]) ws2[cellRef].z = '0%';
+  }
+  XLSX.utils.book_append_sheet(wb, ws2, 'Score Summary');
+
+  // ── SHEET 3: Checklist Detail ────────────────────────────────────────────
+  var checklistRows = [['Audit Checklist \u2014 Full Detail'], [], ['Section', 'Question / Item', 'Answer', 'Points', 'Note']];
+  DATA.forEach(function(sec) {
+    (sec.questions || []).forEach(function(q) {
+      var a = answers[q.id];
+      var ansText = a ? (a.val === 'yes' ? 'Yes' : a.val === 'no' ? 'No' : 'N/A') : '';
+      var pts = a ? a.pts : '';
+      var noteArea = document.getElementById('note-' + q.id);
+      var noteTa = noteArea ? noteArea.querySelector('textarea') : null;
+      var note = noteTa ? noteTa.value.trim() : '';
+      checklistRows.push([sec.label, q.q, ansText, pts, note]);
+    });
+    (sec.selects || []).forEach(function(s) {
+      var el = document.getElementById(s.id);
+      var selectedText = '';
+      var pts = 0;
+      if (el && el.selectedIndex >= 0) {
+        selectedText = el.options[el.selectedIndex].text;
+        pts = parseInt(el.value) || 0;
+      }
+      checklistRows.push([sec.label, s.label, selectedText, pts, '']);
+    });
+  });
+  var ws3 = XLSX.utils.aoa_to_sheet(checklistRows);
+  ws3['!cols'] = [{ wch: 20 }, { wch: 44 }, { wch: 22 }, { wch: 8 }, { wch: 40 }];
+  XLSX.utils.book_append_sheet(wb, ws3, 'Checklist Detail');
+
+  // ── SHEET 4: Findings (section-level notes) ─────────────────────────────
+  var findingsRows = [['Section Findings and Observations'], [], ['Section', 'Findings / Corrective Actions']];
+  DATA.forEach(function(sec) {
+    (sec.findings || []).forEach(function(f) {
+      var el = document.getElementById(f.id);
+      findingsRows.push([sec.label, el ? el.value : '']);
+    });
+    var capEl = document.getElementById('cap-' + sec.id);
+    if (capEl && capEl.value.trim()) {
+      findingsRows.push([sec.label + ' (section photo caption)', capEl.value]);
+    }
+  });
+  var ws4 = XLSX.utils.aoa_to_sheet(findingsRows);
+  ws4['!cols'] = [{ wch: 26 }, { wch: 70 }];
+  XLSX.utils.book_append_sheet(wb, ws4, 'Findings');
+
+  // ── SHEET 5: Photo Log (filenames/labels, not embedded images) ──────────
+  var photoRows = [['Photo Log'], ['Note: photos are not embedded in this sheet. Use the PDF export to view full-size labelled photos.'], [], ['#', 'Section', 'Question / Label']];
+  var photoNum = 1;
+  document.querySelectorAll('.thumb').forEach(function(th) {
+    if (!th.dataset.src) return;
+    var sec = th.dataset.secLabel || '';
+    var q = th.dataset.qLabel || '';
+    photoRows.push([photoNum++, sec, q]);
+  });
+  document.querySelectorAll('.sg-th').forEach(function(th) {
+    if (!th.dataset.src) return;
+    var sec = th.dataset.secLabel || '';
+    photoRows.push([photoNum++, sec, 'Section photo']);
+  });
+  if (photoNum === 1) {
+    photoRows.push(['\u2014', 'No photos were added during this audit.', '']);
+  }
+  var ws5 = XLSX.utils.aoa_to_sheet(photoRows);
+  ws5['!cols'] = [{ wch: 6 }, { wch: 22 }, { wch: 50 }];
+  XLSX.utils.book_append_sheet(wb, ws5, 'Photo Log');
+
+  var safeName = getSafeAuditFilename();
+  XLSX.writeFile(wb, safeName + '.xlsx');
+  showToast('Saved as ' + safeName + '.xlsx');
 }
 
 function loadAuditJSON(input) {
@@ -1061,6 +1269,18 @@ function applyAuditState(state) {
     Object.keys(state.findings).forEach(function(id) {
       var el = document.getElementById(id);
       if (el) el.value = state.findings[id];
+    });
+  }
+
+  // Per-question notes
+  if (state.questionNotes) {
+    Object.keys(state.questionNotes).forEach(function(qid) {
+      var area = document.getElementById('note-' + qid);
+      var ta = area ? area.querySelector('textarea') : null;
+      if (ta) {
+        ta.value = state.questionNotes[qid];
+        onNoteInput(qid, 'npreview-' + qid, 'nbtn-' + qid);
+      }
     });
   }
 
