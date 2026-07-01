@@ -185,7 +185,39 @@ input[type=file]{display:none}
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--surface-2);color:var(--cyan);padding:11px 22px;border-radius:10px;font-size:13px;font-weight:700;z-index:3000;display:none;border:1px solid rgba(49,231,255,.45);box-shadow:var(--glow-cyan)}
 .toast.show{display:block}
 
-/* ── PRINT: clean light report for PDF export ── */
+/* ── FIX 1: date input full width on mobile ── */
+input[type="date"]{width:100%;min-width:0}
+@media(max-width:480px){input[type="date"]{font-size:14px}}
+
+/* ── FIX 3: manual light theme override ── */
+body.light-mode{
+  background:#f5f6f8;background-image:none;
+  --bg:#f5f6f8;--surface:#ffffff;--surface-2:#f0f4fb;
+  --line:rgba(0,0,0,.1);--line-strong:rgba(0,0,0,.18);
+  --text:#14181f;--muted:#5a6a84;--faint:#8391ac;
+  --cyan:#1F4E79;--cyan-d:#2E75B6;--blue:#2E75B6;--green:#15803d;--red:#b91c1c;--amber:#92400e;
+  --glow-cyan:0 0 0 1px rgba(31,78,121,.3);
+  --glow-green:0 0 0 1px rgba(21,128,61,.3);
+  --glow-red:0 0 0 1px rgba(185,28,28,.3);
+}
+body.light-mode{background:#f5f6f8!important}
+body.light-mode .sec-card,body.light-mode .siteinfo-panel,body.light-mode .footer{background:#fff!important}
+body.light-mode .sec-head{background:#f0f4fb!important}
+body.light-mode .siteinfo-toggle{background:#e8f1fb!important}
+body.light-mode .si-field input,body.light-mode .si-field select,body.light-mode .si-field textarea,
+body.light-mode .frow textarea,body.light-mode .opt-sel,body.light-mode .sec-gal-cap,
+body.light-mode .note-area textarea{background:#f8fafc!important;color:#14181f!important}
+body.light-mode .export-menu,body.light-mode .modal-box{background:#fff!important}
+body.light-mode .score-box{text-shadow:none}
+body.light-mode .sec-bar-fill,body.light-mode .prog-fill{background:#2E75B6!important;box-shadow:none!important}
+body.light-mode .tab.on{box-shadow:none}
+body.light-mode .q-row.ans-yes{background:#f0fff4!important;box-shadow:inset 3px 0 0 #15803d!important}
+body.light-mode .q-row.ans-no{background:#fff5f5!important;box-shadow:inset 3px 0 0 #b91c1c!important}
+.theme-btn{width:32px;height:32px;border:1px solid var(--line-strong);border-radius:9px;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;padding:0;color:var(--muted);transition:.15s}
+.theme-btn:hover{border-color:var(--cyan);color:var(--cyan)}
+@media print{.theme-btn{display:none!important}}
+
+/* ── FIX 2: note area textareas forced light in print ── */
 @media print{
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body{background:#fff!important;background-image:none!important;color:#14181f!important}
@@ -199,6 +231,8 @@ input[type=file]{display:none}
   .siteinfo-toggle-title,.sec-ttl,.top-title h1{color:#1F4E79!important;text-shadow:none!important}
   .siteinfo-toggle-ref,.score-box{color:#1F4E79!important;text-shadow:none!important}
   .si-field input,.si-field select,.si-field textarea,.frow textarea,.opt-sel,.sec-gal-cap{background:#fff!important;border:1px solid #c8d4e8!important;color:#14181f!important;box-shadow:none!important}
+  .note-area textarea,.note-area{background:#fff!important;color:#14181f!important;box-shadow:none!important}
+  .note-area textarea{border:1px solid #c8d4e8!important;border-radius:7px!important}
   .q-label,.q-text,.opt-label,.modal-title{color:#14181f!important}
   .q-ptag,.opt-pts{background:#e8f1fb!important;color:#1F4E79!important;border:1px solid #cfe0f5!important}
   .prog,.sec-bar{background:#e0e8f5!important;border:none!important}
@@ -253,6 +287,7 @@ input[type=file]{display:none}
   <div class="top-title"><h1>Supermarket energy audit</h1><p id="adate"></p></div>
   <div class="score-box" id="tscore">0/100<span>audit score</span></div>
   <button class="reset-btn" onclick="showResetModal()">&#8635; Reset</button>
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light / dark mode">&#9788;</button>
 </div>
 <div class="prog"><div class="prog-fill" id="pfill" style="width:0%"></div></div>
 
@@ -417,6 +452,31 @@ input[type=file]{display:none}
 <div class="toast" id="toast"></div>
 </div>
 <script>
+// ── THEME TOGGLE (dark / light) ────────────────────────────────────────────────
+function toggleTheme() {
+  var isLight = document.body.classList.toggle('light-mode');
+  var btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = isLight ? '\u263D' : '\u2600';
+  try { localStorage.setItem('cfm_audit_theme', isLight ? 'light' : 'dark'); } catch(e) {}
+}
+// Restore saved theme preference
+(function() {
+  try {
+    var saved = localStorage.getItem('cfm_audit_theme');
+    if (saved === 'light') {
+      document.body.classList.add('light-mode');
+      // btn not yet in DOM at this point — will be updated on load
+    }
+  } catch(e) {}
+})();
+window.addEventListener('DOMContentLoaded', function() {
+  try {
+    var saved = localStorage.getItem('cfm_audit_theme');
+    var btn = document.getElementById('theme-btn');
+    if (btn) btn.textContent = saved === 'light' ? '\u263D' : '\u2600';
+  } catch(e) {}
+});
+
 // ── DATE & REF NUMBER ──────────────────────────────────────────────────────────
 var today = new Date();
 document.getElementById('adate').textContent = today.toLocaleDateString('en-GB', {weekday:'long',year:'numeric',month:'long',day:'numeric'});
